@@ -1,0 +1,90 @@
+#Python reddit API
+import praw
+#GUI
+import tkinter
+#Open article links
+import webbrowser
+ 
+#Creating Windows
+loginwindow = tkinter.Tk()
+postwindow = tkinter.Tk()
+ 
+#Window titles
+loginwindow.wm_title("Best of Reddit Login")
+postwindow.wm_title("Best of Reddit")
+ 
+#Open login window and hiding the posts window
+loginwindow.deiconify()
+postwindow.withdraw()
+ 
+#Username and Password
+Username = tkinter.StringVar()
+Password = tkinter.StringVar()
+sub = tkinter.StringVar()
+ 
+def Start():
+    #Creating a PRAW Reddit object
+    r = praw.Reddit(user_agent='best_reddit_grabber')
+    #Getting the top 30 submissions
+    submissions = r.get_subreddit(str(sub.get())).get_top(limit=30)
+   
+    #Logging in to reddit to allow voting
+    r.login(str(Username.get()), str(Password.get()))
+ 
+    #Hiding the login window and showing the posts window
+    loginwindow.withdraw()
+    postwindow.deiconify()
+ 
+    #Track buttons
+    already_done = []
+ 
+    #Track rows and columns
+    rownum = 0
+    colnum = 0
+    switched = "No"
+ 
+    #Function to open the submissions websites
+    def opensite(site):
+        webbrowser.open(site)
+ 
+    #For loop to create buttons
+    for x in submissions:
+        #Checkif the button has already been made
+        if x.id not in already_done:
+            #Creating the button that has karma, title, and links to website
+            tkinter.Button(postwindow, text = x, command = lambda x=x: opensite(x.url)).grid(column = colnum, row = rownum)
+            #Creating the Up, Clear, and Down vote buttons
+            tkinter.Button(postwindow, text = "Up Vote", command = lambda x=x: x.upvote()).grid(column = colnum + 1, row = rownum)
+            tkinter.Button(postwindow, text = "Clear Vote", command = lambda x=x: x.clear_vote()).grid(column = colnum + 2, row = rownum)
+            tkinter.Button(postwindow, text = "Down Vote", command = lambda x=x: x.downvote()).grid(column = colnum + 3, row = rownum)
+            #Adding the submission id to the tracking list
+            already_done.append(x.id)
+            #Increasing the row number
+            rownum = rownum + 1
+            #Switching off to the second half of the news window
+            if rownum >= 15 and switched == "No":
+                colnum = 4
+                rownum = rownum - 15
+                switched = "Yes"
+ 
+#Login screen
+Username_Label = tkinter.Label(loginwindow, text = "Username")
+Username_Label.grid(column = 0, row = 1)
+Password_Label = tkinter.Label(loginwindow, text = "Password")
+Password_Label.grid(column = 0, row = 2)
+sub_Label = tkinter.Label(loginwindow, text = "Subreddit")
+sub_Label.grid(column = 0, row = 3)
+ 
+Username_Entry = tkinter.Entry(loginwindow, textvariable = Username)
+Username_Entry.grid(column = 1, row = 1)
+Password_Entry = tkinter.Entry(loginwindow, textvariable = Password)
+Password_Entry.grid(column = 1, row = 2)
+sub_Entry = tkinter.Entry(loginwindow, textvariable = sub)
+sub_Entry.grid(column = 1, row = 3)
+ 
+#Login Buttons
+Login_Button = tkinter.Button(loginwindow, text = "Login", command = Start)
+Login_Button.grid(column = 1, row = 4)
+ 
+#Putting everything on the screen
+tkinter.mainloop()
